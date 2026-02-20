@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cyber Security Awareness Quiz</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="container">
+    <h1>🛡️ Cyber Security Awareness Quiz</h1>
+
+    <p class="subtitle">Test your knowledge and stay safe online</p>
+
+    <div class="level-select">
+      <h3>Select Difficulty</h3>
+      <button onclick="setLevel('beginner')">Beginner</button>
+      <button onclick="setLevel('intermediate')">Intermediate</button>
+      <button onclick="setLevel('advanced')">Advanced</button>
+    </div>
+
+    <div id="quiz-box" class="quiz-box" style="display:none;">
+
+  <div class="top-bar">
+    <div id="progress-text">Question 1/5</div>
+    <div id="timer">⏱ 15s</div>
+  </div>
+
+  <div class="progress-container">
+    <div id="progress-bar"></div>
+  </div>
+
+  <h2 id="question">Question text</h2>
+  <div id="options" class="options"></div>
+
+</div>
+
+    <div id="result-box" class="result-box" style="display:none;"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
