@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberQuiz — Cybersecurity Awareness Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #040d1a;
+    --bg2: #071428;
+    --panel: #0a1f3a;
+    --panel2: #0d2545;
+    --accent: #00f5c4;
+    --accent2: #0084ff;
+    --accent3: #ff3c6e;
+    --warn: #ffb800;
+    --text: #c8e6ff;
+    --text-dim: #5a8ab0;
+    --border: rgba(0,245,196,0.2);
+    --glow: 0 0 20px rgba(0,245,196,0.3);
+    --glow2: 0 0 20px rgba(0,132,255,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,196,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,196,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Scanlines */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .noise {
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(0,245,196,0.5));
+    animation: pulse-logo 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-logo {
+    0%, 100% { filter: drop-shadow(0 0 20px rgba(0,245,196,0.5)); }
+    50% { filter: drop-shadow(0 0 40px rgba(0,245,196,0.8)) drop-shadow(0 0 60px rgba(0,132,255,0.4)); }
+  }
+
+  .tagline {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-top: 6px;
+    opacity: 0.7;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen {
+    width: 100%;
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== HOME SCREEN ===== */
+  .home-intro {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .home-intro h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    color: var(--accent2);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .home-intro p {
+    color: var(--text-dim);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+
+  .cat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+  }
+
+  .cat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, transparent 60%, rgba(0,245,196,0.05));
+    transition: opacity 0.3s;
+  }
+
+  .cat-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--glow), inset 0 0 20px rgba(0,245,196,0.05);
+    transform: translateY(-3px);
+  }
+
+  .cat-card.selected {
+    border-color: var(--accent);
+    background: var(--panel2);
+    box-shadow: var(--glow);
+  }
+
+  .cat-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .cat-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .cat-desc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .cat-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 2px;
+    opacity: 0.6;
+  }
+
+  /* Difficulty selector */
+  .difficulty-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .diff-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    padding: 10px 24px;
+    background: transparent;
+    border: 1px solid var(--text-dim);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+
+  .diff-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .diff-btn.active.easy { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 12px rgba(0,245,196,0.3); background: rgba(0,245,196,0.07); }
+  .diff-btn.active.medium { border-color: var(--warn); color: var(--warn); box-shadow: 0 0 12px rgba(255,184,0,0.3); background: rgba(255,184,0,0.07); }
+  .diff-btn.active.hard { border-color: var(--accent3); color: var(--accent3); box-shadow: 0 0 12px rgba(255,60,110,0.3); background: rgba(255,60,110,0.07); }
+
+  .start-btn {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    color: var(--bg);
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .start-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.2));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .start-btn:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(0,245,196,0.5); }
+  .start-btn:hover::after { opacity: 1; }
+  .start-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* ===== QUIZ SCREEN ===== */
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .quiz-meta {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .quiz-meta span { color: var(--accent); }
+
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .timer-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 50px;
+    text-align: center;
+    transition: color 0.3s;
+  }
+
+  .timer-display.warn { color: var(--warn); animation: blink 0.5s ease infinite; }
+  .timer-display.danger { color: var(--accent3); }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .timer-bar-wrap {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .timer-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 2px;
+    transition: width 1s linear, background 0.3s;
+  }
+
+  .timer-bar.warn { background: linear-gradient(90deg, var(--warn), #ff7700); }
+  .timer-bar.danger { background: var(--accent3); }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .progress-bar-wrap {
+    width: 100%;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    margin-bottom: 24px;
+    border-radius: 2px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--accent2);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .question-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px;
+    margin-bottom: 20px;
+    position: relative;
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  }
+
+  .question-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    opacity: 0.7;
+  }
+
+  .question-text {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 560px) {
+    .options-grid { grid-template-columns: 1fr; }
+  }
+
+  .option-btn {
+    background: var(--panel);
+    border: 1px solid rgba(90,138,176,0.3);
+    color: var(--text);
+    padding: 14px 16px;
+    text-align: left;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-radius: 2px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-btn::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent2);
+    background: rgba(0,132,255,0.1);
+    box-shadow: var(--glow2);
+  }
+
+  .option-btn:hover:not(:disabled)::before { opacity: 1; }
+
+  .option-btn.correct {
+    border-color: var(--accent) !important;
+    background: rgba(0,245,196,0.12) !important;
+    color: var(--accent) !important;
+    box-shadow: 0 0 16px rgba(0,245,196,0.25) !important;
+  }
+
+  .option-btn.wrong {
+    border-color: var(--accent3) !important;
+    background: rgba(255,60,110,0.1) !important;
+    color: var(--accent3) !important;
+  }
+
+  .option-btn:disabled { cursor: not-allowed; }
+
+  .opt-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    min-width: 20px;
+    margin-top: 1px;
+  }
+
+  .feedback-bar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+    border-radius: 2px;
+    opacity: 0;
+  }
+
+  .feedback-bar.show { opacity: 1; }
+  .feedback-bar.correct { color: var(--accent); background: rgba(0,245,196,0.08); border: 1px solid rgba(0,245,196,0.3); }
+  .feedback-bar.wrong { color: var(--accent3); background: rgba(255,60,110,0.08); border: 1px solid rgba(255,60,110,0.3); }
+  .feedback-bar.timeout { color: var(--warn); background: rgba(255,184,0,0.08); border: 1px solid rgba(255,184,0,0.3); }
+
+  .score-live {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-align: right;
+  }
+  .score-live span { color: var(--accent); font-size: 1rem; }
+
+  /* ===== RESULTS SCREEN ===== */
+  .results-panel {
+    text-align: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 40px 30px;
+    border-radius: 4px;
+    clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+    position: relative;
+    overflow: hidden;
+  }
+
+  .results-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at top, rgba(0,245,196,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .results-grade {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(3rem, 10vw, 6rem);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+
+  .results-grade.A { color: var(--accent); filter: drop-shadow(0 0 20px var(--accent)); }
+  .results-grade.B { color: var(--accent2); filter: drop-shadow(0 0 20px var(--accent2)); }
+  .results-grade.C { color: var(--warn); filter: drop-shadow(0 0 20px var(--warn)); }
+  .results-grade.D { color: var(--accent3); filter: drop-shadow(0 0 20px var(--accent3)); }
+
+  .results-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-bottom: 30px;
+  }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+
+  .stat-box {
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+  }
+
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  .results-msg {
+    font-size: 1rem;
+    color: var(--text-dim);
+    margin-bottom: 30px;
+    line-height: 1.6;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-secondary {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid var(--text-dim);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+
+  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* Review panel */
+  .review-list {
+    margin-top: 30px;
+    text-align: left;
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent2) var(--panel2);
+  }
+
+  .review-item {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 14px 0;
+  }
+
+  .review-q {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .review-q-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-right: 6px;
+  }
+
+  .review-answers {
+    display: flex;
+    gap: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .review-correct { color: var(--accent); }
+  .review-wrong { color: var(--accent3); }
+
+  /* ===== PARTICLES ===== */
+  .particle {
+    position: fixed;
+    width: 2px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: float-up linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes float-up {
+    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.2; }
+    100% { transform: translateY(-20px) translateX(30px); opacity: 0; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--panel); }
+  ::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 2px; }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .diff-info {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div id="app">
+  <div class="header">
+    <div class="logo">CYBER<span style="color:var(--accent2)">QUIZ</span></div>
+    <div class="tagline">// CYBERSECURITY AWARENESS CHALLENGE //</div>
+  </div>
+
+  <!-- HOME SCREEN -->
+  <div id="screen-home" class="screen active" style="width:100%">
+    <div class="home-intro">
+      <h2>SELECT YOUR MISSION</h2>
+      <p>Test your cybersecurity knowledge across 6 domains. Choose a category and difficulty to begin.</p>
+    </div>
+
+    <div class="section-title">Categories</div>
+    <div class="categories-grid" id="cat-grid"></div>
+
+    <div class="section-title">Difficulty</div>
+    <div class="difficulty-row">
+      <button class="diff-btn easy active" onclick="selectDiff('easy', this)">EASY</button>
+      <button class="diff-btn medium" onclick="selectDiff('medium', this)">MEDIUM</button>
+      <button class="diff-btn hard" onclick="selectDiff('hard', this)">HARD</button>
+    </div>
+
+    <div class="diff-info" id="diff-info">Easy · 30 seconds per question · 10 questions</div>
+
+    <button class="start-btn" id="start-btn" onclick="startQuiz()" disabled>START MISSION</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="screen-quiz" class="screen" style="width:100%">
+    <div class="quiz-header">
+      <div class="quiz-meta">CATEGORY: <span id="q-cat"></span> &nbsp;|&nbsp; LEVEL: <span id="q-diff"></span></div>
+      <div class="timer-wrap">
+        <div class="timer-display" id="timer-display">30</div>
+        <div class="quiz-meta">SEC</div>
+      </div>
+    </div>
+    <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+    <div class="progress-info">
+      <span id="q-progress">Question 1 / 10</span>
+      <div class="score-live">Score: <span id="score-live">0</span></div>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="question-panel">
+      <div class="question-num" id="q-num">Q.01</div>
+      <div class="question-text" id="q-text"></div>
+    </div>
+    <div class="options-grid" id="options-grid"></div>
+    <div class="feedback-bar" id="feedback-bar"></div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="screen-results" class="screen" style="width:100%">
+    <div class="results-panel">
+      <div class="results-grade" id="results-grade">A</div>
+      <div class="results-title" id="results-title">EXCELLENT PERFORMANCE</div>
+      <div class="stats-row">
+        <div class="stat-box"><span class="stat-val" id="res-score">0</span><span class="stat-label">SCORE</span></div>
+        <div class="stat-box"><span class="stat-val" id="res-correct">0</span><span class="stat-label">CORRECT</span></div>
+        <div class="stat-box"><span class="stat-val" id="res-wrong">0</span><span class="stat-label">WRONG</span></div>
+        <div class="stat-box"><span class="stat-val" id="res-acc">0%</span><span class="stat-label">ACCURACY</span></div>
+      </div>
+      <div class="results-msg" id="results-msg"></div>
+      <div class="btn-row">
+        <button class="start-btn" onclick="retryQuiz()" style="max-width:180px">RETRY</button>
+        <button class="btn-secondary" onclick="showHome()">MAIN MENU</button>
+        <button class="btn-secondary" onclick="toggleReview()">REVIEW</button>
+      </div>
+      <div class="review-list" id="review-list" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+// QUESTION BANK — 6 categories × 3 levels × 10 questions = 180 total
+// =====================================================================
+const QUESTIONS = {
+  "Cybersecurity Basics": {
+    easy: [
+      { q: "What does CIA stand for in cybersecurity?", opts: ["Control, Identify, Authorize", "Cyber Intelligence Agency", "Central Information Access", "Confidentiality, Integrity, Availability"], ans: 3 },
+      { q: "Which of these is an example of two-factor authentication?", opts: ["Username only", "Password + SMS code", "Password only", "Fingerprint only"], ans: 1 },
+      { q: "What is a firewall?", opts: ["Software/hardware that filters network traffic", "A type of encryption", "An antivirus program", "A hardware device for printing"], ans: 0 },
+      { q: "What does HTTPS stand for?", opts: ["High Transfer Protocol System", "Hyper Transfer Privacy Service", "HyperText Transfer Protocol Secure", "Host Transfer Protocol Secure"], ans: 2 },
+      { q: "Which of these is NOT a cybersecurity principle?", opts: ["Integrity", "Availability", "Profitability", "Confidentiality"], ans: 2 },
+      { q: "What is the purpose of antivirus software?", opts: ["Detect and remove malware", "Store passwords securely", "Improve internet speed", "Speed up your computer"], ans: 0 },
+      { q: "What is a VPN used for?", opts: ["Blocking all websites", "Creating a secure encrypted connection", "Speeding up your internet", "Upgrading hardware"], ans: 1 },
+      { q: "Which action helps protect your online accounts?", opts: ["Using strong, unique passwords", "Sharing passwords with friends", "Using the same password everywhere", "Never logging out"], ans: 0 },
+      { q: "What does 'malware' mean?", opts: ["Malicious software", "Managed software", "Malfunctioning hardware", "Marketing software"], ans: 0 },
+      { q: "What is the best way to verify a suspicious email?", opts: ["Reply to the email", "Ignore it without telling anyone", "Click all links to check", "Call the sender through a trusted number"], ans: 3 }
+    ],
+    medium: [
+      { q: "What is the difference between authentication and authorization?", opts: ["Authorization verifies identity; authentication grants permissions", "Authentication verifies identity; authorization grants permissions", "Neither relate to security", "They are the same thing"], ans: 1 },
+      { q: "Which encryption standard is currently considered most secure for symmetric encryption?", opts: ["MD5", "AES-256", "3DES", "DES"], ans: 1 },
+      { q: "What is a zero-day vulnerability?", opts: ["A vulnerability discovered on day zero of deployment", "A vulnerability fixed the same day", "A vulnerability with no known fix", "A vulnerability in older systems only"], ans: 2 },
+      { q: "What does 'defense in depth' mean?", opts: ["Defending only the network perimeter", "Encrypting all data at rest", "Using multiple layers of security controls", "Having one strong defense layer"], ans: 2 },
+      { q: "Which of the following is a characteristic of a strong password?", opts: ["At least 6 characters with your name", "12+ characters, mixed case, numbers, symbols", "Simple dictionary words", "Only numbers for easy recall"], ans: 1 },
+      { q: "What is the principle of least privilege?", opts: ["Reduce system performance to save resources", "Give all users admin access", "Minimize the number of users", "Give users only the access they need for their role"], ans: 3 },
+      { q: "What is a honeypot in cybersecurity?", opts: ["A type of encryption algorithm", "A password management system", "A network monitoring tool", "A trap to attract and study attackers"], ans: 3 },
+      { q: "What type of attack involves intercepting communications between two parties?", opts: ["Man-in-the-Middle", "Brute Force", "Denial of Service", "SQL Injection"], ans: 0 },
+      { q: "What is 'patching' in cybersecurity?", opts: ["Installing new hardware", "Adding more security cameras", "Applying updates to fix software vulnerabilities", "Sewing network cables"], ans: 2 },
+      { q: "What does SIEM stand for?", opts: ["Security Information and Event Management", "System Integration and Error Monitoring", "Secure Internet and Email Management", "Software Input Error Management"], ans: 0 }
+    ],
+    hard: [
+      { q: "What is the difference between IDS and IPS?", opts: ["IDS blocks threats; IPS only detects them", "They are identical systems", "IPS is only used in cloud environments", "IDS detects threats; IPS detects and blocks them"], ans: 3 },
+      { q: "Which of the following best describes 'threat modeling'?", opts: ["Modeling 3D replicas of servers", "Monitoring user behavior", "Creating virus signatures", "Identifying and prioritizing potential threats to a system"], ans: 3 },
+      { q: "What is a rainbow table used for?", opts: ["Cracking password hashes", "Encrypting data at rest", "Visualizing network topology", "Network packet analysis"], ans: 0 },
+      { q: "What does PKI stand for and what is its primary purpose?", opts: ["Proxy Key Interface — routes network traffic", "Public Key Internet — connects secure networks", "Public Key Infrastructure — manages digital certificates and encryption keys", "Private Key Identity — stores user credentials"], ans: 2 },
+      { q: "In the MITRE ATT&CK framework, what does 'lateral movement' refer to?", opts: ["Routing network traffic sideways", "Moving physical hardware between locations", "Techniques attackers use to move through a network after gaining access", "Load balancing across servers"], ans: 2 },
+      { q: "What is a supply chain attack?", opts: ["Compromising software/hardware during production or distribution", "Exploiting delivery service networks", "Attacking retail inventory systems", "DDoS attack on e-commerce sites"], ans: 0 },
+      { q: "What is the purpose of certificate pinning?", opts: ["Revoking compromised certificates", "Generating self-signed certificates", "Ensuring an app only trusts specific certificates", "Preventing certificate expiration"], ans: 2 },
+      { q: "What is a side-channel attack?", opts: ["Exploiting physical implementation information like timing or power consumption", "Attacking via a non-primary network path", "Attacking a secondary network interface", "A low-priority vulnerability exploit"], ans: 0 },
+      { q: "What does 'non-repudiation' guarantee in cybersecurity?", opts: ["Systems remain available at all times", "A sender cannot deny sending a message", "Data remains unchanged", "Data is only seen by intended recipients"], ans: 1 },
+      { q: "What is the purpose of a SAST tool?", opts: ["Monitoring runtime behavior of applications", "Analyzing source code to find vulnerabilities before execution", "Scanning network ports for open services", "Encrypting data in transit"], ans: 1 }
+    ]
+  },
+  "Network Security": {
+    easy: [
+      { q: "What does IP stand for?", opts: ["Integrated Port", "Internet Protocol", "Internet Privacy", "Internal Program"], ans: 1 },
+      { q: "What is a router used for?", opts: ["Storing files", "Monitoring email", "Printing documents", "Directing network traffic between devices"], ans: 3 },
+      { q: "Which port is typically used by HTTPS?", opts: ["80", "21", "443", "25"], ans: 2 },
+      { q: "What does DNS stand for?", opts: ["Data Network Server", "Direct Network Security", "Domain Name System", "Digital Naming Service"], ans: 2 },
+      { q: "What is a MAC address?", opts: ["A software license number", "A type of internet protocol", "A wireless encryption key", "A unique hardware identifier for network interfaces"], ans: 3 },
+      { q: "What is a network packet?", opts: ["A type of firewall rule", "A unit of data transmitted over a network", "A network subscription plan", "A box of networking hardware"], ans: 1 },
+      { q: "What does LAN stand for?", opts: ["Local Area Network", "Large Area Network", "Linked Access Node", "Layered Application Network"], ans: 0 },
+      { q: "What type of attack floods a server with traffic to make it unavailable?", opts: ["Phishing", "Brute Force", "SQL Injection", "DDoS"], ans: 3 },
+      { q: "What is network segmentation?", opts: ["Monitoring network speed", "Compressing network data", "Dividing a network into separate zones for security", "Cutting physical network cables"], ans: 2 },
+      { q: "Which protocol is used to assign IP addresses automatically?", opts: ["DNS", "FTP", "DHCP", "SMTP"], ans: 2 }
+    ],
+    medium: [
+      { q: "What is ARP spoofing?", opts: ["A method to speed up ARP resolution", "Blocking ARP requests with a firewall", "Encrypting ARP traffic", "An attack that associates the attacker's MAC with a legitimate IP"], ans: 3 },
+      { q: "What is the purpose of a DMZ in network security?", opts: ["A demilitarized firewall rule", "A buffer zone between public internet and internal network", "A dedicated VPN zone", "A zone where no encryption is used"], ans: 1 },
+      { q: "What does 'network sniffing' involve?", opts: ["Capturing and analyzing network packets", "Detecting bad smells in server rooms", "Monitoring CPU performance", "Scanning for wireless networks"], ans: 0 },
+      { q: "What is VLAN and why is it used?", opts: ["Volatile LAN — temporary network segment", "Virtual LAN — logically segments a network to improve security and performance", "Virtual Link Access Node — increases bandwidth", "Verified LAN — authenticates network devices"], ans: 1 },
+      { q: "What type of scan does Nmap perform when checking for open ports?", opts: ["Password scan", "Virus scan", "HTTP scan", "Port scan"], ans: 3 },
+      { q: "Which protocol provides secure remote access to servers?", opts: ["SSH", "Telnet", "HTTP", "FTP"], ans: 0 },
+      { q: "What is IP spoofing?", opts: ["Faking the source IP address in network packets", "Encrypting IP headers", "Hiding your IP using a VPN", "Changing your MAC address"], ans: 0 },
+      { q: "What does 'stateful inspection' in a firewall mean?", opts: ["The firewall inspects only static rules", "The firewall tracks the state of active connections to filter packets", "The firewall monitors server RAM usage", "The firewall blocks all stateful protocols"], ans: 1 },
+      { q: "What is an SSL strip attack?", opts: ["Blocking SSL traffic with a firewall", "Stealing SSL private keys", "Downgrading HTTPS connections to HTTP to intercept traffic", "Removing SSL certificates from a server"], ans: 2 },
+      { q: "What does OSPF stand for in networking?", opts: ["Open Source Port Forwarding", "Optimized Secure Packet Filter", "Open Shortest Path First", "Outbound Security Protocol Framework"], ans: 2 }
+    ],
+    hard: [
+      { q: "What is BGP hijacking?", opts: ["Disabling BGP on a network", "Overloading a router's BGP table", "Brute-forcing BGP authentication", "Announcing false BGP routes to redirect internet traffic"], ans: 3 },
+      { q: "What is the difference between TCP SYN scan and TCP connect scan?", opts: ["SYN scan completes the handshake; connect scan sends only the SYN", "Connect scan is used on UDP only", "SYN scan never completes the 3-way handshake; connect scan does", "They are identical"], ans: 2 },
+      { q: "What is an amplification attack in DDoS?", opts: ["Increasing the number of bots in a botnet", "Using servers that return large responses to amplify the attack traffic", "Increasing the bandwidth of a server attack", "Amplifying malware payloads"], ans: 1 },
+      { q: "What does DNSSEC protect against?", opts: ["All DNS-based attacks", "DNS enumeration", "DNS brute force attacks", "DNS cache poisoning by validating DNS responses"], ans: 3 },
+      { q: "What is a Smurf attack?", opts: ["Broadcasting ICMP echo requests to amplify traffic against a victim", "Flooding a router with large packets", "A social engineering attack on network admins", "Sending malformed ICMP packets to crash a server"], ans: 0 },
+      { q: "What is the purpose of 802.1X in network security?", opts: ["Defining VLAN standards", "Encrypting wireless traffic", "Providing IP address assignment", "Port-based network access control requiring authentication before access"], ans: 3 },
+      { q: "What is east-west traffic in network security?", opts: ["International data transfers", "Traffic between servers within a data center", "Encrypted traffic through a tunnel", "Traffic from east coast to west coast data centers"], ans: 1 },
+      { q: "What does a WAF protect against?", opts: ["Email phishing attacks", "Malware on endpoints", "Application-layer web attacks like XSS and SQLi", "Network-level DDoS attacks"], ans: 2 },
+      { q: "What is network forensics?", opts: ["Capturing and analyzing network traffic to investigate incidents", "Physically inspecting network cables", "Forensic accounting of network costs", "Testing network speed after an incident"], ans: 0 },
+      { q: "What is micro-segmentation in modern security architectures?", opts: ["Creating granular security zones down to the individual workload level", "Segmenting traffic by packet size", "Splitting bandwidth between users", "Dividing a network into two zones"], ans: 0 }
+    ]
+  },
+  "Password & Authentication": {
+    easy: [
+      { q: "What makes a password strong?", opts: ["Using your birthday", "Using a long mix of letters, numbers, and symbols", "Using common words", "Using your pet's name"], ans: 1 },
+      { q: "What is multi-factor authentication (MFA)?", opts: ["Verifying identity with two or more different factors", "Using a very long password", "Using multiple passwords", "Having multiple user accounts"], ans: 0 },
+      { q: "What is a password manager?", opts: ["A person who manages IT passwords", "An app for sharing passwords", "Software that securely stores and generates passwords", "A browser extension for surfing"], ans: 2 },
+      { q: "Which of these is the weakest password?", opts: ["T$7kLm#9vQ", "password123", "Qr&5$LpN8!", "Xw!92@bRnZ"], ans: 1 },
+      { q: "What does 'phishing' aim to steal?", opts: ["Your login credentials and personal data", "Your computer hardware", "Your software licenses", "Your internet bandwidth"], ans: 0 },
+      { q: "How often should you change your passwords?", opts: ["Regularly, especially after a data breach", "Every 10 years", "Never", "Only when you forget them"], ans: 0 },
+      { q: "What is a passphrase?", opts: ["A password recovery phrase", "A phrase describing your password hint", "Another term for PIN", "A sequence of random words used as a password"], ans: 3 },
+      { q: "What should you do if you suspect your account is compromised?", opts: ["Use the same password on a new account", "Do nothing and wait", "Share the issue on social media", "Change your password immediately and enable MFA"], ans: 3 },
+      { q: "Which is the safest place to store passwords?", opts: ["In a text file on your desktop", "Written on a sticky note on your monitor", "In an email to yourself", "In a secure password manager"], ans: 3 },
+      { q: "What is biometric authentication?", opts: ["Authentication using physical characteristics like fingerprints", "Authentication via email link", "Authentication using secret questions", "Authentication via phone call"], ans: 0 }
+    ],
+    medium: [
+      { q: "What is a brute force attack?", opts: ["Guessing passwords using personal information", "Physically breaking into a data center", "Systematically trying every possible password combination", "Using malware to steal password files"], ans: 2 },
+      { q: "What is a dictionary attack?", opts: ["Attacking a library database", "Brute forcing with random characters", "Using a list of common words and passwords to crack credentials", "Encrypting passwords with a wordlist"], ans: 2 },
+      { q: "What is credential stuffing?", opts: ["Using leaked username/password pairs from one breach on other sites", "Testing weak passwords on a login form", "Adding extra characters to passwords", "Filling in default credentials on all systems"], ans: 0 },
+      { q: "What is password salting?", opts: ["Adding complexity requirements to passwords", "Encrypting passwords with AES", "Adding random data to a password before hashing to prevent rainbow table attacks", "Changing passwords on a schedule"], ans: 2 },
+      { q: "Which hashing algorithm is currently recommended for storing passwords?", opts: ["Base64", "MD5", "SHA-1", "bcrypt or Argon2"], ans: 3 },
+      { q: "What is TOTP and how is it used?", opts: ["Total Output Transfer Protocol — measures bandwidth", "Temporary Online Tracking Protocol — monitors sessions", "Two-Option Transfer Protocol — alternative to HTTPS", "Time-based One-Time Password — generates temporary codes for MFA"], ans: 3 },
+      { q: "What is a credential harvesting attack?", opts: ["Harvesting data from public databases", "Collecting user credentials through deceptive means like fake login pages", "Collecting passwords from sticky notes", "Mining cryptocurrency using stolen credentials"], ans: 1 },
+      { q: "What is the difference between hashing and encryption?", opts: ["Hashing is one-way and irreversible; encryption is two-way and reversible", "They are identical operations", "Encryption is one-way; hashing is two-way", "Hashing uses a key; encryption does not"], ans: 0 },
+      { q: "What is FIDO2/WebAuthn?", opts: ["A two-factor SMS standard", "A passwordless authentication standard using public key cryptography", "A firewall authentication protocol", "A password management standard"], ans: 1 },
+      { q: "What is an account lockout policy?", opts: ["Permanently disabling old accounts", "Requiring password change after login", "Logging all account activity", "Locking an account after a defined number of failed login attempts"], ans: 3 }
+    ],
+    hard: [
+      { q: "What is the difference between Argon2i, Argon2d, and Argon2id?", opts: ["They are identical algorithms with different names", "Argon2i resists side-channel attacks; Argon2d resists GPU attacks; Argon2id combines both", "Argon2d is deprecated; Argon2i is standard", "They differ in output length only"], ans: 1 },
+      { q: "What is Kerberoasting?", opts: ["Burning Kerberos tokens to invalidate sessions", "Replaying Kerberos authentication packets", "Attacking the Kerberos KDC directly", "Requesting service tickets and cracking them offline to extract credentials"], ans: 3 },
+      { q: "What is a pass-the-hash attack?", opts: ["Passing hashed data through a firewall", "Converting a hash to plaintext using a rainbow table", "Hashing a password multiple times", "Using a captured password hash to authenticate without knowing the plaintext"], ans: 3 },
+      { q: "What is a Golden Ticket attack in Active Directory?", opts: ["Winning an AD security audit", "Forging a Kerberos TGT using the KRBTGT hash to gain persistent domain access", "Using a default admin ticket to access resources", "Exploiting a Golden Gate vulnerability in AD"], ans: 1 },
+      { q: "What entropy level is generally considered sufficient for cryptographic keys?", opts: ["16 bits", "128+ bits", "32 bits", "64 bits"], ans: 1 },
+      { q: "What is the purpose of key stretching in password security?", opts: ["Making encryption keys longer", "Distributing keys across multiple servers", "Stretching passwords to meet minimum length", "Deliberately slowing down hashing to make brute force attacks more expensive"], ans: 3 },
+      { q: "What is a Silver Ticket attack?", opts: ["A lower-privilege version of a Golden Ticket using a service account hash", "An attack on silver-grade SSL certificates", "Stealing credentials from memory using a silver exploit", "Forging a Kerberos TGT with limited scope"], ans: 0 },
+      { q: "What is PAKE (Password-Authenticated Key Exchange)?", opts: ["A key management system for password databases", "A protocol allowing parties to establish a shared key using a password without exposing the password", "A protocol for exchanging passwords securely", "A hardware-based key exchange standard"], ans: 1 },
+      { q: "What is the security risk of using NTLM authentication?", opts: ["It is vulnerable to pass-the-hash and relay attacks and lacks mutual authentication", "It uses too much bandwidth", "It requires expensive hardware", "It only works on Windows XP"], ans: 0 },
+      { q: "What is a timing attack in the context of authentication?", opts: ["Delaying login attempts to block users", "Exploiting differences in response time to infer secret information like password comparison", "Using a time bomb malware on authentication servers", "Attacking a server at a specific time of day"], ans: 1 }
+    ]
+  },
+  "Social Engineering & Phishing": {
+    easy: [
+      { q: "What is phishing?", opts: ["A deceptive attempt to steal sensitive info by pretending to be a trusted entity", "A network scanning technique", "A type of fishing sport", "A type of firewall rule"], ans: 0 },
+      { q: "Which of these is a red flag in a phishing email?", opts: ["Email from your CEO's verified address", "An email with your correct name and department", "Urgent request to click a link and enter your password", "A newsletter you subscribed to"], ans: 2 },
+      { q: "What is 'pretexting' in social engineering?", opts: ["Previewing a text message before sending", "Writing a preface for a document", "A type of network pre-authentication", "Creating a fabricated scenario to manipulate someone into giving information"], ans: 3 },
+      { q: "What should you do if you receive an unexpected call asking for your login credentials?", opts: ["Provide them if the caller sounds professional", "Give them your username but not your password", "Ask for their email and send the credentials", "Hang up and verify through official channels"], ans: 3 },
+      { q: "What is 'vishing'?", opts: ["A type of phishing done via voice/phone calls", "A virus that spreads through phone apps", "Video call hacking", "Visual phishing using fake images"], ans: 0 },
+      { q: "What is tailgating in physical security?", opts: ["Attaching a device to a vehicle to track it", "Checking someone's tail for ID", "Following someone too closely on the highway", "Unauthorized entry by following an authorized person through a secured door"], ans: 3 },
+      { q: "What is 'smishing'?", opts: ["Phishing using smart devices", "Email phishing with attachments", "Social media phishing", "Phishing via SMS text messages"], ans: 3 },
+      { q: "What makes spear phishing different from regular phishing?", opts: ["It only attacks servers, not users", "It uses a spear as a metaphor for speed", "It targets a specific individual or organization with personalized content", "It uses encrypted emails to avoid detection"], ans: 2 },
+      { q: "What is the best defense against social engineering attacks?", opts: ["Security awareness training and verification procedures", "Strong passwords only", "Antivirus software", "Encrypted email"], ans: 0 },
+      { q: "What is baiting in social engineering?", opts: ["Luring victims with something enticing like a free USB drive or download", "Setting a network trap for attackers", "Using food to distract security guards", "A fishing metaphor for phishing"], ans: 0 }
+    ],
+    medium: [
+      { q: "What is whaling in cybersecurity?", opts: ["Hunting for vulnerabilities in big databases", "Targeting large organizations with DDoS attacks", "Spear phishing attacks targeting high-profile executives", "A large-scale phishing campaign targeting millions"], ans: 2 },
+      { q: "What is a watering hole attack?", opts: ["Flooding a network with requests", "An attack originating from a pool of bots", "Polluting a company's water supply", "Compromising websites that target users are likely to visit"], ans: 3 },
+      { q: "What is 'quid pro quo' in social engineering?", opts: ["A pretexting scenario involving money", "A business email compromise technique", "Offering a service or benefit in exchange for information", "A Latin legal term used in phishing emails"], ans: 2 },
+      { q: "What is Business Email Compromise (BEC)?", opts: ["An attack where criminals impersonate executives to authorize fraudulent transactions", "A phishing kit targeting business email clients", "A malware that compromises email servers", "Encrypting a company's email system for ransom"], ans: 0 },
+      { q: "What psychological principle do social engineers exploit most often?", opts: ["Technical complexity", "Authority, urgency, fear, and trust", "Logic and reasoning", "Mathematical algorithms"], ans: 1 },
+      { q: "What is OSINT and how do social engineers use it?", opts: ["Organized Security Inspection — a compliance framework", "Open Source Intelligence — used to gather publicly available information about targets", "Operating System Intelligence — used to hack OS vulnerabilities", "Online Security Intelligence — a defense tool only"], ans: 1 },
+      { q: "What is 'shoulder surfing'?", opts: ["Surfing the web on a shared computer", "Observing someone entering sensitive information by looking over their shoulder", "A network attack using shoulder-band frequency", "Accessing a system from behind a firewall"], ans: 1 },
+      { q: "What is 'dumpster diving' in security?", opts: ["Searching through discarded materials to find sensitive information", "Throwing away compromised hardware", "Deleting old security logs", "A physical fitness activity at offices"], ans: 0 },
+      { q: "Which of these best describes a 'Man-in-the-Middle' social engineering approach?", opts: ["Impersonating a CEO in emails", "Using two fake identities simultaneously", "Physically standing between two people", "Intercepting and possibly altering communications between two parties"], ans: 3 },
+      { q: "What is the 'foot-in-the-door' technique in social engineering?", opts: ["Accessing a building through an emergency exit", "Getting a target to comply with a small request to eventually agree to larger ones", "A technique used only in physical intrusions", "Placing malware via a USB at a door"], ans: 1 }
+    ],
+    hard: [
+      { q: "What is 'deepfake' phishing and why is it a growing threat?", opts: ["A complex multi-stage phishing attack", "Phishing using deep web links", "Using AI-generated realistic audio/video of trusted individuals to deceive targets", "Phishing using deeply embedded email links"], ans: 2 },
+      { q: "What is an 'island hopping' attack?", opts: ["Moving laterally across network islands", "Compromising smaller supply chain partners to eventually attack a larger target", "Attacking multiple island nations sequentially", "Hopping between different attack vectors"], ans: 1 },
+      { q: "What is 'pretexting' at an advanced level and how does it differ from phishing?", opts: ["Pretexting creates an elaborate fabricated identity/scenario over time; phishing is typically a single deceptive message", "Phishing is more sophisticated than pretexting", "Pretexting is always done in person; phishing is always digital", "They are identical techniques"], ans: 0 },
+      { q: "What is 'vishing' combined with 'caller ID spoofing'?", opts: ["A technique to bypass voice biometric authentication", "A phone-based social engineering attack where the caller fakes their caller ID to appear as a trusted source", "An attack using video calls with fake backgrounds", "A VoIP system vulnerability exploit"], ans: 1 },
+      { q: "What is 'adversarial machine learning' in the context of phishing detection?", opts: ["Using AI to make phishing emails look more human", "Crafting inputs to fool ML-based phishing detection systems into misclassifying malicious content", "A red team exercise using machine learning", "Teaching machines to detect phishing by adversarial training"], ans: 1 },
+      { q: "What is 'sim swapping' and how is it used in attacks?", opts: ["Intercepting SIM card signals wirelessly", "Swapping SIM cards between phones to clone them", "Convincing a carrier to transfer a victim's phone number to an attacker's SIM, enabling MFA bypass", "A technique to hack cellular network infrastructure"], ans: 2 },
+      { q: "What is 'angler phishing'?", opts: ["Phishing attacks targeting fishing companies", "An advanced form of spear phishing using fishing metaphors", "Phishing via angling-related websites", "Targeting users who complain on social media by impersonating customer service accounts"], ans: 3 },
+      { q: "In advanced social engineering, what is 'trust escalation'?", opts: ["Gradually building a relationship with a target to gain increasing levels of trust and access over time", "Elevating trust settings in a security system", "A formal approval process in security operations", "Escalating an attack after trust is broken"], ans: 0 },
+      { q: "What is 'callback phishing' (telephone-oriented attack delivery)?", opts: ["A phishing method where an email directs users to call a number, where a live attacker then socially engineers them", "Calling back a phishing number that appeared in spam", "Automated robocall phishing", "A phishing attack originating from a call center"], ans: 0 },
+      { q: "What is 'pig butchering' (sha zhu pan) in the context of cyber fraud?", opts: ["A ransomware attack on agricultural businesses", "A long-term romance/investment scam where criminals slowly build trust before defrauding victims of large sums", "A brute force attack that exhausts all possibilities", "A targeted attack on pork industry supply chains"], ans: 1 }
+    ]
+  },
+  "Malware & Threats": {
+    easy: [
+      { q: "What is a computer virus?", opts: ["Malicious code that attaches itself to programs and spreads when executed", "A type of firewall", "A biological illness spread via computers", "A hardware failure"], ans: 0 },
+      { q: "What is ransomware?", opts: ["A type of phishing email", "Malware that encrypts files and demands payment for decryption", "Software that improves PC performance", "Free software that's actually expensive"], ans: 1 },
+      { q: "What is a Trojan horse in cybersecurity?", opts: ["A type of DDoS attack", "Malware disguised as legitimate software", "An outdated operating system", "A Greek mythology-themed game"], ans: 1 },
+      { q: "What is spyware?", opts: ["A type of firewall", "Malware that secretly monitors and collects user information", "Software that speeds up internet", "Parental control software"], ans: 1 },
+      { q: "What is a botnet?", opts: ["A network of robot devices", "A network of infected computers controlled remotely by an attacker", "Automated network testing tools", "A group of cybersecurity bots"], ans: 1 },
+      { q: "What is adware?", opts: ["Unwanted software that displays advertisements, often bundled with free software", "Software for creating ads", "A legitimate advertising platform", "Email marketing software"], ans: 0 },
+      { q: "How does a worm differ from a virus?", opts: ["A worm spreads automatically across networks; a virus requires a host file", "They are identical", "A worm only affects mobile devices", "A worm needs user interaction; a virus spreads automatically"], ans: 0 },
+      { q: "What is the best defense against ransomware?", opts: ["Disconnecting from the internet permanently", "Using only older software", "Paying the ransom quickly", "Regular offline backups and keeping software updated"], ans: 3 },
+      { q: "What is a keylogger?", opts: ["A keyboard productivity tool", "A program for logging typing speed", "A firewall monitoring program", "Malware that records keystrokes to steal passwords and sensitive data"], ans: 3 },
+      { q: "What is a rootkit?", opts: ["A type of secure boot loader", "A collection of IT administration tools", "Malware designed to provide persistent, hidden access to a system", "Root directory management software"], ans: 2 }
+    ],
+    medium: [
+      { q: "What is a fileless malware attack?", opts: ["Malware that deletes all files on execution", "Malware hidden in image files", "Malware that operates in memory without writing to disk, evading traditional AV", "A malware attack that leaves no trace on the network"], ans: 2 },
+      { q: "What is a logic bomb?", opts: ["A physical bomb disguised as network equipment", "A type of DDoS using logical attacks", "An algorithm that causes system crashes", "Malicious code that executes when specific conditions are met"], ans: 3 },
+      { q: "What is a polymorphic virus?", opts: ["A virus that affects multiple file types", "A virus that changes its code signature to evade detection", "A virus with multiple payload stages", "A virus that spreads through multiple platforms"], ans: 1 },
+      { q: "What is command and control (C2) infrastructure?", opts: ["Infrastructure used by attackers to communicate with and control compromised systems", "A protocol for server management", "A compliance framework for operational security", "A management system for IT operations"], ans: 0 },
+      { q: "What is the difference between a backdoor and a RAT?", opts: ["A backdoor is legitimate; a RAT is always malicious", "A backdoor is covert access to a system; a RAT (Remote Access Trojan) provides full remote control capabilities", "A RAT is a network tool; a backdoor is a physical access point", "They are identical"], ans: 1 },
+      { q: "What is cryptojacking?", opts: ["Hacking cryptocurrency wallets", "Cracking cryptocurrency encryption", "Stealing encrypted files", "Using a victim's computing resources without consent to mine cryptocurrency"], ans: 3 },
+      { q: "What is the purpose of obfuscation in malware?", opts: ["Encrypting the malware's network traffic", "Making malware code harder to analyze and detect", "Making malware code run faster", "Hiding malware inside images"], ans: 1 },
+      { q: "What is a dropper in malware terminology?", opts: ["A malware component that installs other malware on the target system", "A technique to drop firewall rules", "A tool for dropping network connections", "A phishing email that drops into spam"], ans: 0 },
+      { q: "What is lateral movement in the context of malware?", opts: ["Moving malware between storage drives", "Malware moving between files sideways", "An attacker moving from an initial foothold to other systems within a network", "Network traffic routing between servers"], ans: 2 },
+      { q: "What is a multi-stage malware attack?", opts: ["An attack that uses multiple types of malware simultaneously", "An attack on multiple targets at once", "An attack where malware uses different stages (dropper, loader, payload) to evade detection", "A phased DDoS attack"], ans: 2 }
+    ],
+    hard: [
+      { q: "What is a heap spray attack?", opts: ["An attack that targets heap memory allocation functions", "Overflowing the heap to crash an application", "Spraying malware across multiple heap servers", "Filling the heap with shellcode to increase the probability of successful exploitation"], ans: 3 },
+      { q: "What is a return-oriented programming (ROP) attack?", opts: ["Chaining existing code snippets ('gadgets') to bypass DEP and execute malicious code", "A technique to reverse-engineer malware", "A programming paradigm used to write secure code", "Returning to the beginning of a program to restart execution"], ans: 0 },
+      { q: "What is a living-off-the-land attack?", opts: ["Using legitimate system tools and features to carry out malicious activities to evade detection", "A physical security attack at an agricultural facility", "An attack relying only on open-source tools", "A slow-burn attack that takes years to execute"], ans: 0 },
+      { q: "What is process hollowing in malware?", opts: ["Draining a process's resources to cause a crash", "Creating hollow processes as decoys", "Removing processes from memory to free up resources", "Replacing the memory of a legitimate process with malicious code to evade detection"], ans: 3 },
+      { q: "What is a bootkit?", opts: ["A toolkit for managing system boots", "Malware that infects the boot sector to load before the OS, persisting even after reinstalls", "A secure boot verification tool", "A type of rootkit that only affects network boot"], ans: 1 },
+      { q: "What is 'dwell time' in the context of APT attacks?", opts: ["The time an attacker remains undetected inside a network after initial compromise", "The duration of a DDoS attack", "The time it takes for malware to activate", "The time between malware updates"], ans: 0 },
+      { q: "What is the difference between an exploit and a payload in an attack?", opts: ["An exploit takes advantage of a vulnerability to gain access; a payload is the malicious code executed after exploitation", "A payload is used to find vulnerabilities; an exploit is the attack code", "Exploits are always network-based; payloads are always file-based", "They are identical components"], ans: 0 },
+      { q: "What is a 'time bomb' variant of a logic bomb?", opts: ["Malware that slows a system progressively over time", "Malware that activates at a specific date or time", "A DDoS attack timed to coincide with a major event", "Malware that destroys timing circuits"], ans: 1 },
+      { q: "What is anti-forensics in malware?", opts: ["Encrypting malware to prevent reverse engineering", "Forensic tools used against attackers", "Techniques used by malware to hinder or prevent forensic analysis and investigation", "Malware that avoids detection by forensic software at purchase"], ans: 2 },
+      { q: "What is 'island hopping' in the context of supply chain attacks?", opts: ["Using multiple C2 servers across different networks", "Hopping between geographic islands for attack routing", "Alternating between different malware families", "Compromising an organization's suppliers or partners to access the primary target"], ans: 3 }
+    ]
+  },
+  "Data Privacy & Ethics": {
+    easy: [
+      { q: "What is personal data?", opts: ["Any data stored on a computer", "Only financial information", "Public data available online", "Information that can identify a specific individual"], ans: 3 },
+      { q: "What does GDPR stand for?", opts: ["Government Data Protection Rights", "General Data Privacy Regulation", "Global Data Processing Rules", "General Data Protection Regulation"], ans: 3 },
+      { q: "What is the right to be forgotten?", opts: ["The right to request deletion of your personal data from an organization", "The right to forget your password", "The right to delete social media accounts", "A law protecting amnesia patients"], ans: 0 },
+      { q: "What is data minimization?", opts: ["Reducing data storage costs", "Minimizing the number of databases", "Collecting only the minimum data necessary for a specific purpose", "Compressing data files"], ans: 2 },
+      { q: "What is informed consent in data privacy?", opts: ["Reading a privacy policy", "Agreeing to data collection after being clearly informed about its use", "Automatically consenting by using a service", "Signing any document related to data"], ans: 1 },
+      { q: "What is the purpose of a privacy policy?", opts: ["To inform users how their data is collected, used, and shared", "To confuse users about data use", "A legal requirement with no practical use", "To advertise an organization's services"], ans: 0 },
+      { q: "What is data breach notification?", opts: ["An automatic password reset system", "A security alert on a database", "Notifying users that their data was backed up", "Informing affected individuals and authorities when personal data is compromised"], ans: 3 },
+      { q: "What is PII?", opts: ["Private Internet Information", "Public Internet Interface", "Personally Identifiable Information", "Protected IT Infrastructure"], ans: 2 },
+      { q: "Which of these is an example of sensitive personal data?", opts: ["Your first name", "Your publicly listed phone number", "Your favorite color", "Your medical records"], ans: 3 },
+      { q: "What does it mean to anonymize data?", opts: ["Encrypting data for transmission", "Removing or altering identifying information so data cannot be linked to an individual", "Storing data in another country", "Making data public"], ans: 1 }
+    ],
+    medium: [
+      { q: "What is the difference between data anonymization and pseudonymization?", opts: ["They are identical", "Anonymization is irreversible; pseudonymization replaces identifiers but can be reversed with a key", "Anonymization uses encryption; pseudonymization deletes data", "Pseudonymization is irreversible; anonymization can be reversed"], ans: 1 },
+      { q: "What are the lawful bases for processing personal data under GDPR?", opts: ["Only explicit consent", "Only legal obligation and contract", "Consent, contract, legal obligation, vital interests, public task, and legitimate interests", "Any reason as long as it's business-related"], ans: 2 },
+      { q: "What is a Data Protection Officer (DPO)?", opts: ["A police officer who handles cybercrime", "A government auditor for data protection", "The head of IT security", "A person responsible for ensuring data protection compliance within an organization"], ans: 3 },
+      { q: "What is purpose limitation in data protection?", opts: ["Limiting the amount of data collected", "Restricting who can access data", "Data collected for one purpose cannot be used for a different incompatible purpose", "Limiting how long data is stored"], ans: 2 },
+      { q: "What is a Privacy Impact Assessment (PIA)?", opts: ["A financial audit of data storage costs", "An assessment of network privacy settings", "A legal review of a privacy policy", "A process to identify and mitigate privacy risks in a project or system"], ans: 3 },
+      { q: "What is differential privacy?", opts: ["Privacy policies that differ by jurisdiction", "Different levels of data encryption", "A mathematical framework for adding controlled noise to datasets to protect individual privacy while enabling analysis", "Privacy settings that differ by user"], ans: 2 },
+      { q: "What is the concept of 'privacy by design'?", opts: ["Designing privacy-themed software", "Designing a secure network architecture", "Creating a privacy policy document", "Incorporating data protection and privacy into systems from the initial design stage"], ans: 3 },
+      { q: "What is the difference between data controller and data processor under GDPR?", opts: ["They have identical roles", "Controller determines the purpose and means of processing; processor processes data on the controller's behalf", "Processor controls data; controller processes it", "Controller is the individual; processor is the organization"], ans: 1 },
+      { q: "What is the California Consumer Privacy Act (CCPA)?", opts: ["A data protection law for government agencies", "A California state law giving consumers rights over their personal data collected by businesses", "A GDPR equivalent that applies globally", "A federal US cybersecurity law"], ans: 1 },
+      { q: "What is re-identification in the context of anonymized data?", opts: ["Updating identification records", "Restoring deleted user accounts", "The process of linking anonymized data back to specific individuals", "Re-registering on a platform"], ans: 2 }
+    ],
+    hard: [
+      { q: "What is the 'aggregation problem' in data privacy?", opts: ["The challenge of storing aggregated big data securely", "Issues with combining databases", "Errors in data aggregation algorithms", "When combining individually harmless data points creates a privacy violation"], ans: 3 },
+      { q: "What is contextual integrity in data privacy theory?", opts: ["Data integrity varies by context", "Data is only private in context of a court", "Information flows appropriately when they match the norms of the original context in which data was shared", "Privacy protection that depends on database context"], ans: 2 },
+      { q: "What ethical issues arise from using AI/ML in predictive policing from a data privacy perspective?", opts: ["Privacy concerns only apply if data is publicly shared", "The only issue is data storage costs", "AI is always accurate so there are no ethical issues", "Bias amplification, surveillance of innocent individuals, lack of transparency, and discriminatory profiling based on personal data"], ans: 3 },
+      { q: "What is the 'third-party doctrine' in US privacy law and why is it controversial?", opts: ["A law requiring third-party privacy audits", "A rule that third parties must have privacy policies", "A GDPR rule governing data processors", "The legal principle that information shared with third parties has no Fourth Amendment protection — controversial because modern life requires constant data sharing"], ans: 3 },
+      { q: "What is a 'mosaic effect' in data privacy?", opts: ["When aggregating innocuous data pieces creates a detailed profile that violates privacy", "A data encryption pattern", "Privacy protection that resembles a mosaic structure", "A data visualization technique"], ans: 0 },
+      { q: "What is 'data sovereignty' and why is it a geopolitical issue?", opts: ["The right to own your personal data", "The concept that data is subject to the laws of the country where it is located — creating conflicts when data crosses borders", "Data security in sovereign nation-states", "Government ownership of all national data"], ans: 1 },
+      { q: "What is the ethical debate around GDPR's 'right to explanation' for automated decisions?", opts: ["It debates whether organizations must explain algorithmic decisions and how to do so when ML models are opaque black boxes", "There is no debate — it is universally accepted", "The debate centers on who should pay for explanations", "The debate concerns how long explanations must be retained"], ans: 0 },
+      { q: "What is 'informed consent' inadequacy in the digital age?", opts: ["Consent forms that are too short", "Users being too informed about data practices", "The lack of legal enforcement of consent agreements", "The argument that modern consent mechanisms fail because users cannot realistically read and understand complex terms of service"], ans: 3 },
+      { q: "What is the tension between public health surveillance and individual privacy?", opts: ["The tension between using individual data to track/prevent disease outbreaks versus protecting personal health privacy rights", "A technical challenge of anonymizing health data", "The tension between government and private health organizations over data ownership", "There is no tension — public health always trumps privacy"], ans: 0 },
+      { q: "What is 'surveillance capitalism' as described by Shoshana Zuboff?", opts: ["Government surveillance of corporations", "The use of CCTV cameras for commercial purposes", "A capitalist business model focused on security products", "An economic logic built on the extraction and commodification of personal data and behavioral prediction as a new form of capital"], ans: 3 }
+    ]
+  }
+};
+
+// =====================================================================
+// GAME STATE
+// =====================================================================
+const TIMER_SECS = { easy: 30, medium: 20, hard: 15 };
+const POINTS = { easy: 10, medium: 20, hard: 30 };
+
+let state = {
+  selectedCat: null,
+  selectedDiff: 'easy',
+  questions: [],
+  currentQ: 0,
+  score: 0,
+  correct: 0,
+  wrong: 0,
+  timerInterval: null,
+  timeLeft: 30,
+  answered: false,
+  history: [] // { q, userAns, correctAns, correct }
+};
+
+// =====================================================================
+// INIT
+// =====================================================================
+window.addEventListener('DOMContentLoaded', () => {
+  buildCategoryCards();
+  createParticles();
+});
+
+function createParticles() {
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `
+      left: ${Math.random() * 100}%;
+      animation-duration: ${6 + Math.random() * 10}s;
+      animation-delay: ${Math.random() * 8}s;
+      width: ${1 + Math.random() * 2}px;
+      height: ${1 + Math.random() * 2}px;
+      opacity: ${0.2 + Math.random() * 0.4};
+      background: ${Math.random() > 0.5 ? 'var(--accent)' : 'var(--accent2)'};
+    `;
+    document.body.appendChild(p);
+  }
+}
+
+function buildCategoryCards() {
+  const icons = ['🛡️', '🌐', '🔑', '🎭', '🦠', '🔒'];
+  const descs = [
+    'Foundational concepts, principles, and terminology',
+    'Protocols, attacks, and defensive techniques',
+    'Authentication methods, password security & MFA',
+    'Human manipulation tactics and awareness',
+    'Viruses, ransomware, and malicious software',
+    'GDPR, privacy principles, and ethical considerations'
+  ];
+  const cats = Object.keys(QUESTIONS);
+  const grid = document.getElementById('cat-grid');
+  cats.forEach((cat, i) => {
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.innerHTML = `
+      <span class="cat-icon">${icons[i]}</span>
+      <div class="cat-name">${cat}</div>
+      <div class="cat-desc">${descs[i]}</div>
+      <div class="cat-badge">30Q</div>
+    `;
+    card.onclick = () => selectCategory(cat, card);
+    grid.appendChild(card);
+  });
+}
+
+function selectCategory(cat, el) {
+  document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedCat = cat;
+  document.getElementById('start-btn').disabled = false;
+}
+
+function selectDiff(diff, btn) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active', 'easy', 'medium', 'hard'));
+  btn.classList.add('active', diff);
+  state.selectedDiff = diff;
+  const info = { easy: 'Easy · 30 seconds per question · 10 questions', medium: 'Medium · 20 seconds per question · 10 questions', hard: 'Hard · 15 seconds per question · 10 questions' };
+  document.getElementById('diff-info').textContent = info[diff];
+}
+
+// =====================================================================
+// QUIZ LOGIC
+// =====================================================================
+function startQuiz() {
+  if (!state.selectedCat) return;
+  const qs = [...QUESTIONS[state.selectedCat][state.selectedDiff]];
+  state.questions = shuffle(qs).slice(0, 10);
+  state.currentQ = 0;
+  state.score = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.history = [];
+
+  document.getElementById('q-cat').textContent = state.selectedCat;
+  document.getElementById('q-diff').textContent = state.selectedDiff.toUpperCase();
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function shuffle(arr) {
+  return arr.sort(() => Math.random() - 0.5);
+}
+
+function renderQuestion() {
+  const q = state.questions[state.currentQ];
+  state.answered = false;
+  const total = state.questions.length;
+  const num = state.currentQ + 1;
+
+  document.getElementById('q-num').textContent = `Q.${String(num).padStart(2, '0')}`;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('q-progress').textContent = `Question ${num} / ${total}`;
+  document.getElementById('score-live').textContent = state.score;
+  document.getElementById('progress-bar').style.width = `${((num - 1) / total) * 100}%`;
+
+  const fb = document.getElementById('feedback-bar');
+  fb.className = 'feedback-bar';
+  fb.textContent = '';
+
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  const labels = ['A', 'B', 'C', 'D'];
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="opt-label">${labels[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(state.timerInterval);
+  const maxTime = TIMER_SECS[state.selectedDiff];
+  state.timeLeft = maxTime;
+  updateTimerUI(maxTime, maxTime);
+
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateTimerUI(state.timeLeft, maxTime);
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      handleTimeout();
+    }
+  }, 1000);
+}
+
+function updateTimerUI(current, max) {
+  const display = document.getElementById('timer-display');
+  const bar = document.getElementById('timer-bar');
+  const pct = (current / max) * 100;
+  display.textContent = current;
+  bar.style.width = `${pct}%`;
+
+  display.className = 'timer-display';
+  bar.className = 'timer-bar';
+
+  if (current <= 5) {
+    display.classList.add('danger');
+    bar.classList.add('danger');
+  } else if (current <= Math.floor(max * 0.4)) {
+    display.classList.add('warn');
+    bar.classList.add('warn');
+  }
+}
+
+function selectAnswer(idx) {
+  if (state.answered) return;
+  state.answered = true;
+  clearInterval(state.timerInterval);
+
+  const q = state.questions[state.currentQ];
+  const correct = idx === q.ans;
+  const btns = document.querySelectorAll('.option-btn');
+
+  btns.forEach(b => b.disabled = true);
+  btns[q.ans].classList.add('correct');
+  if (!correct) btns[idx].classList.add('wrong');
+
+  const fb = document.getElementById('feedback-bar');
+  fb.className = 'feedback-bar show ' + (correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ CORRECT — WELL DONE' : '✗ INCORRECT';
+
+  if (correct) {
+    state.correct++;
+    state.score += POINTS[state.selectedDiff];
+  } else {
+    state.wrong++;
+  }
+
+  state.history.push({ q: q.q, opts: q.opts, userAns: idx, correctAns: q.ans, correct });
+  document.getElementById('score-live').textContent = state.score;
+
+  setTimeout(nextQuestion, 1400);
+}
+
+function handleTimeout() {
+  if (state.answered) return;
+  state.answered = true;
+
+  const q = state.questions[state.currentQ];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[q.ans].classList.add('correct');
+
+  const fb = document.getElementById('feedback-bar');
+  fb.className = 'feedback-bar show timeout';
+  fb.textContent = '⏱ TIME\'S UP!';
+
+  state.wrong++;
+  state.history.push({ q: q.q, opts: q.opts, userAns: -1, correctAns: q.ans, correct: false });
+
+  setTimeout(nextQuestion, 1400);
+}
+
+function nextQuestion() {
+  state.currentQ++;
+  if (state.currentQ >= state.questions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+// =====================================================================
+// RESULTS
+// =====================================================================
+function showResults() {
+  const total = state.questions.length;
+  const acc = Math.round((state.correct / total) * 100);
+  const pct = acc;
+
+  let grade, title, msg;
+  if (pct >= 90) { grade = 'A+'; title = 'ELITE OPERATOR'; msg = 'Outstanding! You demonstrated expert-level cybersecurity knowledge. You\'re ready to defend against real-world threats.'; }
+  else if (pct >= 80) { grade = 'A'; title = 'SECURITY EXPERT'; msg = 'Excellent performance! Your cybersecurity awareness is well above average. Keep honing your skills.'; }
+  else if (pct >= 70) { grade = 'B'; title = 'STRONG DEFENDER'; msg = 'Good job! You have a solid understanding of cybersecurity concepts. Review the missed questions to improve further.'; }
+  else if (pct >= 60) { grade = 'C'; title = 'DEVELOPING SKILLS'; msg = 'Decent effort! There\'s room for growth. Study the areas where you missed questions and try again.'; }
+  else { grade = 'D'; title = 'NEEDS IMPROVEMENT'; msg = 'Keep learning! Cybersecurity knowledge takes time and practice. Review the fundamentals and try again.'; }
+
+  const gradeClass = grade.startsWith('A') ? 'A' : grade.startsWith('B') ? 'B' : grade.startsWith('C') ? 'C' : 'D';
+
+  document.getElementById('results-grade').textContent = grade;
+  document.getElementById('results-grade').className = 'results-grade ' + gradeClass;
+  document.getElementById('results-title').textContent = title;
+  document.getElementById('results-msg').textContent = msg;
+  document.getElementById('res-score').textContent = state.score;
+  document.getElementById('res-correct').textContent = state.correct;
+  document.getElementById('res-wrong').textContent = state.wrong;
+  document.getElementById('res-acc').textContent = acc + '%';
+
+  document.getElementById('review-list').style.display = 'none';
+
+  showScreen('results');
+}
+
+function toggleReview() {
+  const list = document.getElementById('review-list');
+  if (list.style.display === 'none') {
+    buildReview();
+    list.style.display = 'block';
+  } else {
+    list.style.display = 'none';
+  }
+}
+
+function buildReview() {
+  const list = document.getElementById('review-list');
+  list.innerHTML = '<div class="section-title" style="margin-top:20px">Answer Review</div>';
+  const labels = ['A', 'B', 'C', 'D'];
+  state.history.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    const userLabel = item.userAns === -1 ? 'TIMEOUT' : labels[item.userAns];
+    const corrLabel = labels[item.correctAns];
+    const corrAns = item.opts[item.correctAns];
+    div.innerHTML = `
+      <div class="review-q"><span class="review-q-num">Q${i + 1}.</span>${item.q}</div>
+      <div class="review-answers">
+        <span class="${item.correct ? 'review-correct' : 'review-wrong'}">Your answer: ${userLabel}${item.userAns >= 0 ? ' — ' + item.opts[item.userAns] : ''}</span>
+        ${!item.correct ? `<span class="review-correct">Correct: ${corrLabel} — ${corrAns}</span>` : ''}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function retryQuiz() {
+  startQuiz();
+}
+
+function showHome() {
+  clearInterval(state.timerInterval);
+  showScreen('home');
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+</script>
+</body>
+</html>
