@@ -9,29 +9,15 @@
 
 > An interactive cybersecurity awareness quiz game built with pure HTML, CSS, and JavaScript — no frameworks, no dependencies.
 
----
-
-## 🌐 Live Demo
-
-🔗 **[Play CyberQuiz](https://scrambler-h.github.io/cyberquiz/)**
-*(Replace with your actual GitHub Pages URL after deployment)*
 
 ---
 
 ## 📸 Preview
 
 ```
-╔══════════════════════════════════╗
-║   CYBER█████QUIZ                 ║
-║   // CYBERSECURITY AWARENESS //  ║
-║                                  ║
-║  [🛡️ Basics]  [🌐 Network]       ║
-║  [🔑 Passwords] [🎭 Phishing]    ║
-║  [🦠 Malware]  [🔒 Privacy]      ║
-║                                  ║
-║   EASY   MEDIUM   HARD           ║
-║         [START MISSION]          ║
-╚══════════════════════════════════╝
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4a1368d8-c511-4a0a-b796-a9c709e50363" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a3b5af2f-503c-4506-b0d4-a28f75f5a799" />
+
 ```
 
 ---
